@@ -10,5 +10,5 @@
             "maxDuration": 30
         }
     },
-    "routes": [{ "src": "/", "dest": "./api/your-function" }]
+    "routes": [{ "src": "/", "dest": "./api/index.go" }]
 }
