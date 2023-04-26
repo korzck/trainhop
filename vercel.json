@@ -1,3 +1,14 @@
 {
-    "trailingSlash": false
+    "trailingSlash": false,
+    "functions": {
+        "api/test.js": {
+            "memory": 3008,
+            "maxDuration": 30
+        },
+        "api/*.js": {
+            "memory": 3008,
+            "maxDuration": 30
+        }
+    },
+    "routes": [{ "src": "/", "dest": "./api/your-function" }]
 }
