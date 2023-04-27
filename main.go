@@ -9,9 +9,10 @@ import (
 func main() {
 	// var App *gin.Engine
 	App := gin.Default()
-	App.Use(static.Serve("/", static.LocalFile("./app", true)))
+	App.Use(static.Serve("/", static.LocalFile("./frontend", true)))
 	
 	App.GET("/", root)	
+	App.POST("/upload", getFile)
 	App.GET("/admin", admin)
 	App.Run()
 	
