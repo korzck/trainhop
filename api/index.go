@@ -1,6 +1,7 @@
 package api
 
 import (
+	"io/ioutil"
 	"net/http"
 
 	"github.com/gin-gonic/contrib/static"
@@ -22,16 +23,22 @@ func admin(c *gin.Context){
 // }
 
 func html(c *gin.Context){
-	c.JSON(200, gin.H{
-		"message": "pong",
-	})
+	data, err := ioutil.ReadFile("pages/index.html")
+    if err != nil {
+      c.Status(http.StatusNotFound)
+      return
+    }
+  
+    c.Writer.Header().Set("Content-Type", "text/html")
+    c.Writer.Write(data)
 }
+
+
 
 func init(){
 	App = gin.Default()
 	App.Use(static.Serve("/", static.LocalFile("./pages", true)))
 	App.GET("/admin", admin)
-	// App.GET("/", root)
 	App.GET("/html", html)
 }
 
