@@ -1,8 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
+	"os/exec"
 
 	"github.com/gin-gonic/gin"
 )
@@ -29,17 +32,44 @@ func getFile(c *gin.Context){
 		})
     }
 
-	err = processFile(c, file)
-	if err != nil {
+	err = c.SaveUploadedFile(file, "temp_file.csv")
+    if err != nil {
         c.JSON(409, gin.H {
-			"error" : err.Error(),
+			"error" : "couldn't save file",
 		})
-    } else {
-		c.JSON(200, gin.H {
-			"success" : "file saved",
-		})
-	}
-	return
+    }
+	// defer recover()
+	cmd := exec.Command("ls", "-l")
+    // cmd.Stdout = os.Stdout
+    // cmd.Stderr = os.Stderr
+    err = cmd.Run()
 
-    
+    if err != nil {
+        c.JSON(409, gin.H {
+			"error" : "couldn't process file",
+		})
+    }
+
+	c.JSON(200, gin.H {
+		"success" : "file processed and saved",
+	})
+}
+
+func giveFile(c *gin.Context) {
+	filename := "temp_file.csv"
+	file, err := os.Open(filename)
+  	if err != nil {
+    	c.String(http.StatusNotFound, "File not found")
+    	return
+  	}
+  	defer file.Close()
+	fileInfo, err := file.Stat()
+	if err != nil {
+		c.String(http.StatusInternalServerError, "Error retrieving file info")
+		return
+	}
+	c.Header("Content-Disposition", "attachment; filename="+filename)
+  	c.Header("Content-Type", "application/octet-stream")
+  	c.Header("Content-Length", fmt.Sprint(fileInfo.Size()))
+  	http.ServeContent(c.Writer, c.Request, filename, fileInfo.ModTime(), file)
 }
