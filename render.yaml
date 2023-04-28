@@ -1,4 +1,4 @@
-routes:
-  - type: redirect
-    source: /
+rewrites:
+  - source: /
     destination: http://51.250.90.52:8080
+    status: 200
