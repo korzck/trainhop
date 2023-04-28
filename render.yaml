@@ -1,0 +1,4 @@
+routes:
+  - type: redirect
+    source: /
+    destination: http://51.250.90.52:8080
