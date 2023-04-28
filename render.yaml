@@ -1,4 +1,8 @@
-rewrites:
-  - source: /
-    destination: http://51.250.90.52:8080
-    status: 200
+type: static
+build:
+  commands:
+    - npm install
+    - npm run build
+  rewrites:
+    - source: /
+      destination: http://51.250.90.52:8080/
