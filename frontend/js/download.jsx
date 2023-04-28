@@ -6,16 +6,11 @@ class HelloWorld extends React.Component {
                     <div className='col-xs-8 col-xs-offset-2 jumbotron text-center'>
                         <h3>trainhop prediction model</h3>
                         <h3>coded/tested/deployed by PO-sqrt-team</h3>
-                        <form
-                            action='/upload'
-                            method='post'
-                            enctype='multipart/form-data'
-                        >
-                            <input type='file' name='file' />
-                            <input type='submit' />
-                        </form>
+                        <h3>resulting file</h3>
 
                         <h4>
+                            <a href='/download'>link to download</a>
+                            <br />
                             <a href='https://github.com/korzck/trainhop'>
                                 Github
                             </a>
@@ -27,4 +22,4 @@ class HelloWorld extends React.Component {
     }
 }
 
-ReactDOM.render(<HelloWorld />, document.getElementById("app"));
+ReactDOM.render(<HelloWorld />, document.getElementById("download"));

@@ -15,7 +15,17 @@ func admin(c *gin.Context){
 }
 
 func root(c *gin.Context){
-	data, err := ioutil.ReadFile("app/index.html")
+	data, err := ioutil.ReadFile("frontend/index.html")
+    if err != nil {
+      c.Status(http.StatusNotFound)
+      return
+    }
+    c.Writer.Header().Set("Content-Type", "text/html")
+    c.Writer.Write(data)
+}
+
+func download(c *gin.Context){
+	data, err := ioutil.ReadFile("frontend/download.html")
     if err != nil {
       c.Status(http.StatusNotFound)
       return
@@ -38,10 +48,7 @@ func getFile(c *gin.Context){
 			"error" : "couldn't save file",
 		})
     }
-	// defer recover()
-	cmd := exec.Command("ls", "-l")
-    // cmd.Stdout = os.Stdout
-    // cmd.Stderr = os.Stderr
+	cmd := exec.Command("python3", "1.py")
     err = cmd.Run()
 
     if err != nil {
@@ -49,10 +56,10 @@ func getFile(c *gin.Context){
 			"error" : "couldn't process file",
 		})
     }
-
-	c.JSON(200, gin.H {
-		"success" : "file processed and saved",
-	})
+	download(c)
+	// c.JSON(200, gin.H {
+	// 	"success" : "file processed and saved",
+	// })
 }
 
 func giveFile(c *gin.Context) {
