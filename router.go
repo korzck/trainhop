@@ -2,12 +2,15 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"os/exec"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 func admin(c *gin.Context){
@@ -24,14 +27,38 @@ func root(c *gin.Context){
     c.Writer.Write(data)
 }
 
-func download(c *gin.Context){
-	data, err := ioutil.ReadFile("frontend/download.html")
+func cleanFile(filename string) {
+	time.Sleep(10*time.Minute)
+	err := os.Remove(filename)
     if err != nil {
-      c.Status(http.StatusNotFound)
-      return
+        fmt.Printf("Failed to delete file: %v", err)
+        return
     }
-    c.Writer.Header().Set("Content-Type", "text/html")
-    c.Writer.Write(data)
+ 
+    fmt.Printf("File %s has been deleted\n", filename)
+}
+
+func download(c *gin.Context, filename string){
+	file, err := os.Open(filename)
+	if err != nil {
+		c.String(http.StatusNotFound, "File not found.")
+		return
+	}
+	defer file.Close()
+
+	c.Writer.Header().Set("Content-Description", "File Transfer")
+	c.Writer.Header().Set("Content-Disposition", "attachment; filename="+filename)
+	c.Writer.Header().Set("Content-Transfer-Encoding", "binary")
+	c.Writer.Header().Set("Content-Type", "application/octet-stream")
+	c.Writer.Header().Set("Expires", "0")
+
+	_, err = io.Copy(c.Writer, file)
+	if err != nil {
+		c.String(http.StatusInternalServerError, "Internal server error.")
+		return
+	}
+	c.Redirect(http.StatusMovedPermanently, "/")
+	go cleanFile(filename)
 }
 
 func getFile(c *gin.Context){
@@ -42,13 +69,16 @@ func getFile(c *gin.Context){
 		})
     }
 
-	err = c.SaveUploadedFile(file, "temp_file.csv")
+	fileID := uuid.New().String()
+    fileName := fmt.Sprintf("%s.csv", fileID)
+	fileName = "files/" + fileName
+	err = c.SaveUploadedFile(file, fileName)
     if err != nil {
         c.JSON(409, gin.H {
 			"error" : "couldn't save file",
 		})
     }
-	cmd := exec.Command("python3", "1.py")
+	cmd := exec.Command("python3", "1.py", fileName)
     err = cmd.Run()
 
     if err != nil {
@@ -56,27 +86,6 @@ func getFile(c *gin.Context){
 			"error" : "couldn't process file",
 		})
     }
-	download(c)
-	// c.JSON(200, gin.H {
-	// 	"success" : "file processed and saved",
-	// })
-}
 
-func giveFile(c *gin.Context) {
-	filename := "temp_file.csv"
-	file, err := os.Open(filename)
-  	if err != nil {
-    	c.String(http.StatusNotFound, "File not found")
-    	return
-  	}
-  	defer file.Close()
-	fileInfo, err := file.Stat()
-	if err != nil {
-		c.String(http.StatusInternalServerError, "Error retrieving file info")
-		return
-	}
-	c.Header("Content-Disposition", "attachment; filename="+filename)
-  	c.Header("Content-Type", "application/octet-stream")
-  	c.Header("Content-Length", fmt.Sprint(fileInfo.Size()))
-  	http.ServeContent(c.Writer, c.Request, filename, fileInfo.ModTime(), file)
+	download(c, fileName)
 }
